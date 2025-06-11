@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -107,9 +107,47 @@ async function run() {
   }
   );
 
+  // Get food items by group creator email
+app.get('/food/my-items', verifyToken, async (req, res) => {
+    const groupCreatorEmail = req.query.email;
+
+    if (groupCreatorEmail !== req.decoded.email) {
+        return res.status(403).send({
+            message: 'Forbidden: You are not allowed to access food items for this user.'
+        });
+    }
+
+    try {
+        const foodItems = await FoodCollection.find({ groupCreatorEmail }).toArray();
+        res.send(foodItems);
+    } catch (err) {
+        console.error('Fetch Food Items by Group Creator Error:', err);
+        res.status(500).send({
+            message: 'Failed to fetch food items',
+            error: err.message
+        });
+    }
+});
 
 
-
+  //delete food item endpoint
+  app.delete('/food/delete/:id', verifyToken, async (req, res) => {
+    const foodItemId = req.params.id;
+    if (!foodItemId) {
+      return res.status(400).send({ message: 'Food item ID is required' });
+    }
+    try {
+      const result = await FoodCollection.deleteOne({ _id: new ObjectId(foodItemId) });
+      if (result.deletedCount === 0) {
+        return res.status(404).send({ message: 'Food item not found' });
+      }
+      res.send(result);
+    } catch (err) {
+      console.error('Delete Food Item Error:', err);
+      res.status(500).send({ message: 'Failed to delete food item', error: err.message });
+    }
+  }
+  );
 
 
     await client.db("admin").command({ ping: 1 });
