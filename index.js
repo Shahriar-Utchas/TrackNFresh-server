@@ -14,6 +14,37 @@ app.get('/', (req, res) => {
   res.send('Welcome to FreshNTrack API!');
 });
 
+// Firebase Admin SDK setup
+const admin = require("firebase-admin");
+const FirebaseDecodedKey = Buffer.from(process.env.FIREBASE_SERVER_KEY, 'base64').toString('utf8');
+const serviceAccount = JSON.parse(FirebaseDecodedKey);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+//Token verification middleware
+const verifyToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).send({ message: 'Unauthorized access' });
+  }
+
+  const token = authHeader.split(' ')[1];
+  try {
+       const decodedToken = await admin.auth().verifyIdToken(token);
+       req.decoded = decodedToken; 
+       next();
+
+  } catch (error) {
+      return res.status(401).send({ message: 'Invalid token' });
+  }
+
+
+};
+
+
 // MongoDB setup
 const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.9jhst3g.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -46,8 +77,12 @@ async function run() {
     });
 
   // Add Food-item endpoint
-  app.post('/food/add', async (req, res) => {
-    try {
+  app.post('/food/add', verifyToken, async (req, res) => {
+
+    if(req.body.groupCreatorEmail!== req.decoded.email) {
+      return res.status(403).send({ message: 'Forbidden: You are not allowed to add food items for this user.' });
+    }
+    try { 
       const foodItem = req.body;
       const result = await FoodCollection.insertOne(foodItem);
       res.send(result);
