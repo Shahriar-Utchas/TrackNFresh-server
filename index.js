@@ -31,6 +31,7 @@ async function run() {
 
     const database = client.db("FreshNTrack");
     const UserCollection = database.collection("Users");
+    const FoodCollection = database.collection("FoodItems");
 
     // Register user endpoint
     app.post('/auth/register', async (req, res) => {
@@ -43,6 +44,23 @@ async function run() {
         res.status(500).send({ message: 'Registration failed', error: err.message });
       }
     });
+
+  // Add Food-item endpoint
+  app.post('/food/add', async (req, res) => {
+    try {
+      const foodItem = req.body;
+      const result = await FoodCollection.insertOne(foodItem);
+      res.send(result);
+    } catch (err) {
+      console.error('Add Food Item Error:', err);
+      res.status(500).send({ message: 'Failed to add food item', error: err.message });
+    }
+  }
+  );
+
+
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log("Connected to MongoDB successfully!");
