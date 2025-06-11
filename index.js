@@ -79,7 +79,7 @@ async function run() {
   // Add Food-item endpoint
   app.post('/food/add', verifyToken, async (req, res) => {
 
-    if(req.body.groupCreatorEmail!== req.decoded.email) {
+    if(req.body.foodCreatorEmail!== req.decoded.email) {
       return res.status(403).send({ message: 'Forbidden: You are not allowed to add food items for this user.' });
     }
     try { 
@@ -107,21 +107,21 @@ async function run() {
   }
   );
 
-  // Get food items by group creator email
+  // Get food items by creator email
 app.get('/food/my-items', verifyToken, async (req, res) => {
-    const groupCreatorEmail = req.query.email;
+    const foodCreatorEmail = req.query.email;
 
-    if (groupCreatorEmail !== req.decoded.email) {
+    if (foodCreatorEmail !== req.decoded.email) {
         return res.status(403).send({
             message: 'Forbidden: You are not allowed to access food items for this user.'
         });
     }
 
     try {
-        const foodItems = await FoodCollection.find({ groupCreatorEmail }).toArray();
+        const foodItems = await FoodCollection.find({ foodCreatorEmail }).toArray();
         res.send(foodItems);
     } catch (err) {
-        console.error('Fetch Food Items by Group Creator Error:', err);
+        console.error('Fetch Food Items by Creator Error:', err);
         res.status(500).send({
             message: 'Failed to fetch food items',
             error: err.message
@@ -148,6 +148,52 @@ app.get('/food/my-items', verifyToken, async (req, res) => {
     }
   }
   );
+
+  // 6 food items with the nearest upcoming expiry dates
+  app.get('/food/nearest-expiring', async (req, res) => {
+    const today = new Date();
+
+    try {
+      const items = await FoodCollection.find({
+        $expr: {
+          $gte: [{ $toDate: "$expiryDate" }, today] 
+        }
+      })
+      .sort({ expiryDate: 1 }) 
+      .limit(6)
+      .toArray();
+
+      res.send(items);
+    } catch (error) {
+      console.error('Failed to fetch nearest expiring items:', error);
+      res.status(500).send({
+        message: 'Failed to fetch nearest expiring items',
+        error: error.message
+      });
+    }
+  });
+
+
+  //all expired food items endpoint
+  app.get('/food/expired', async (req, res) => {
+    const today = new Date();
+
+    try {
+      const expiredItems = await FoodCollection.find({
+        $expr: {
+          $lt: [{ $toDate: "$expiryDate" }, today]
+        }
+      }).sort({ expiryDate: -1 }).toArray();
+
+      res.send(expiredItems);
+    } catch (error) {
+      console.error('Failed to fetch expired items:', error);
+      res.status(500).send({
+        message: 'Failed to fetch expired items',
+        error: error.message
+      });
+    }
+  });
 
 
     await client.db("admin").command({ ping: 1 });
