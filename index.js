@@ -94,6 +94,21 @@ async function run() {
   );
 
 
+  //all food items endpoint
+  app.get('/food/all', async (req, res) => {
+    try {
+      const cursor = FoodCollection.find({});
+      const foodItems = await cursor.toArray();
+      res.send(foodItems);
+    } catch (err) {
+      console.error('Fetch Food Items Error:', err);
+      res.status(500).send({ message: 'Failed to fetch food items', error: err.message });
+    }
+  }
+  );
+
+
+
 
 
 
