@@ -149,28 +149,34 @@ async function run() {
   );
 
   // 6 food items with the nearest upcoming expiry dates
-  app.get('/food/nearest-expiring', async (req, res) => {
-    const today = new Date();
+app.get('/food/nearest-expiring', async (req, res) => {
+  const today = new Date();
+  const fiveDaysLater = new Date();
+  fiveDaysLater.setDate(today.getDate() + 5);
 
-    try {
-      const items = await FoodCollection.find({
-        $expr: {
-          $gte: [{ $toDate: "$expiryDate" }, today] 
-        }
-      })
-      .sort({ expiryDate: 1 }) 
+  try {
+    const items = await FoodCollection.find({
+      $expr: {
+        $and: [
+          { $gte: [{ $toDate: "$expiryDate" }, today] },
+          { $lte: [{ $toDate: "$expiryDate" }, fiveDaysLater] }
+        ]
+      }
+    })
+      .sort({ expiryDate: 1 })
       .limit(6)
       .toArray();
 
-      res.send(items);
-    } catch (error) {
-      console.error('Failed to fetch nearest expiring items:', error);
-      res.status(500).send({
-        message: 'Failed to fetch nearest expiring items',
-        error: error.message
-      });
-    }
-  });
+    res.send(items);
+  } catch (error) {
+    console.error('Failed to fetch nearest expiring items:', error);
+    res.status(500).send({
+      message: 'Failed to fetch nearest expiring items',
+      error: error.message
+    });
+  }
+});
+
 
 
   //all expired food items endpoint
