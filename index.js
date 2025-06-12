@@ -213,6 +213,42 @@ async function run() {
   }
   );
 
+  //update food item endpoint
+  app.put('/food/update/:id', verifyToken, async (req, res) => {
+    const foodItemId = req.params.id;
+
+    if (!foodItemId) {
+      return res.status(400).send({ message: 'Food item ID is required' });
+    }
+
+    if (req.body.foodCreatorEmail !== req.decoded.email) {
+      return res.status(403).send({
+        message: 'Forbidden: You are not allowed to update food items for this user.',
+      });
+    }
+
+    try {
+      const newNote = req.body.note; 
+      const result = await FoodCollection.updateOne(
+        { _id: new ObjectId(foodItemId) },
+        {
+          $push: { notes: newNote }
+        }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).send({ message: 'Food item not found' });
+      }
+
+      res.send(result);
+    } catch (err) {
+      console.error('Update Food Item Error:', err);
+      res.status(500).send({ message: 'Failed to update food item', error: err.message });
+    }
+  });
+
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log("Connected to MongoDB successfully!");
