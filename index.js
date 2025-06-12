@@ -93,7 +93,6 @@ async function run() {
   }
   );
 
-
   //all food items endpoint
   app.get('/food/all', async (req, res) => {
     try {
@@ -108,7 +107,7 @@ async function run() {
   );
 
   // Get food items by creator email
-app.get('/food/my-items', verifyToken, async (req, res) => {
+  app.get('/food/my-items', verifyToken, async (req, res) => {
     const foodCreatorEmail = req.query.email;
 
     if (foodCreatorEmail !== req.decoded.email) {
@@ -127,7 +126,7 @@ app.get('/food/my-items', verifyToken, async (req, res) => {
             error: err.message
         });
     }
-});
+  });
 
 
   //delete food item endpoint
@@ -194,6 +193,25 @@ app.get('/food/my-items', verifyToken, async (req, res) => {
       });
     }
   });
+
+  //get food item by id
+  app.get('/food/:id', async (req, res) => {
+    const foodItemId = req.params.id;
+    if (!foodItemId) {
+      return res.status(400).send({ message: 'Food item ID is required' });
+    }
+    try {
+      const foodItem = await FoodCollection.findOne({ _id: new ObjectId(foodItemId) });
+      if (!foodItem) {
+        return res.status(404).send({ message: 'Food item not found' });
+      }
+      res.send(foodItem);
+    } catch (err) {
+      console.error('Fetch Food Item Error:', err);
+      res.status(500).send({ message: 'Failed to fetch food item', error: err.message });
+    }
+  }
+  );
 
 
     await client.db("admin").command({ ping: 1 });
