@@ -213,13 +213,48 @@ async function run() {
   }
   );
 
-  //update food item endpoint
+  // Update food item endpoint
   app.put('/food/update/:id', verifyToken, async (req, res) => {
+    const foodItemId = req.params.id;
+    const updateData = req.body;
+
+    if (!foodItemId) {
+      return res.status(400).send({ message: 'Food item ID is required' });
+    }
+    
+    if (updateData.foodCreatorEmail !== req.decoded.email) {
+      return res.status(403).send({
+        message: 'Forbidden: You are not allowed to update food items for this user.',
+      });
+    }
+
+    try {
+      const result = await FoodCollection.updateOne(
+        { _id: new ObjectId(foodItemId) },
+        { $set: updateData }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).send({ message: 'Food item not found' });
+      }
+
+      res.send({ message: 'Food item updated successfully', modifiedCount: result.modifiedCount });
+    } catch (err) {
+      console.error('Update Food Item Error:', err);
+      res.status(500).send({ message: 'Failed to update food item', error: err.message });
+    }
+  });
+
+
+  //update food item notes endpoint
+  app.put('/food/update/note/:id', verifyToken, async (req, res) => {
     const foodItemId = req.params.id;
 
     if (!foodItemId) {
       return res.status(400).send({ message: 'Food item ID is required' });
     }
+    console.log('Decoded Email:', req.decoded.email);
+    console.log('Request Body Email:', req.body.foodCreatorEmail);
 
     if (req.body.foodCreatorEmail !== req.decoded.email) {
       return res.status(403).send({
