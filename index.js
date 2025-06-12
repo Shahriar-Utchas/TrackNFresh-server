@@ -248,6 +248,28 @@ async function run() {
   });
 
 
+  // DELETE /food/:id/note
+  app.delete('/food/:id/note', verifyToken, async (req, res) => {
+    const foodId = req.params.id;
+    const { note } = req.body; 
+
+  try {
+    const result = await FoodCollection.updateOne(
+      { _id: new ObjectId(foodId) },
+      { $pull: { notes: note } } 
+    );
+
+    if (result.modifiedCount > 0) {
+      res.send({ message: 'Note deleted successfully' });
+    } else {
+      res.status(404).send({ error: 'Note not found or already deleted' });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'Failed to delete note' });
+  }
+  });
+
 
 
     await client.db("admin").command({ ping: 1 });
