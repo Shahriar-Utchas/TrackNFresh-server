@@ -44,7 +44,6 @@ const verifyToken = async (req, res, next) => {
 
 };
 
-
 // MongoDB setup
 const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.9jhst3g.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -58,7 +57,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const database = client.db("FreshNTrack");
     const UserCollection = database.collection("Users");
@@ -128,7 +127,6 @@ async function run() {
     }
   });
 
-
   //delete food item endpoint
   app.delete('/food/delete/:id', verifyToken, async (req, res) => {
     const foodItemId = req.params.id;
@@ -149,35 +147,33 @@ async function run() {
   );
 
   // 6 food items with the nearest upcoming expiry dates
-app.get('/food/nearest-expiring', async (req, res) => {
-  const today = new Date();
-  const fiveDaysLater = new Date();
-  fiveDaysLater.setDate(today.getDate() + 5);
+  app.get('/food/nearest-expiring', async (req, res) => {
+    const today = new Date();
+    const fiveDaysLater = new Date();
+    fiveDaysLater.setDate(today.getDate() + 5);
 
-  try {
-    const items = await FoodCollection.find({
-      $expr: {
-        $and: [
-          { $gte: [{ $toDate: "$expiryDate" }, today] },
-          { $lte: [{ $toDate: "$expiryDate" }, fiveDaysLater] }
-        ]
-      }
-    })
-      .sort({ expiryDate: 1 })
-      .limit(6)
-      .toArray();
+    try {
+      const items = await FoodCollection.find({
+        $expr: {
+          $and: [
+            { $gte: [{ $toDate: "$expiryDate" }, today] },
+            { $lte: [{ $toDate: "$expiryDate" }, fiveDaysLater] }
+          ]
+        }
+      })
+        .sort({ expiryDate: 1 })
+        .limit(6)
+        .toArray();
 
-    res.send(items);
-  } catch (error) {
-    console.error('Failed to fetch nearest expiring items:', error);
-    res.status(500).send({
-      message: 'Failed to fetch nearest expiring items',
-      error: error.message
-    });
-  }
-});
-
-
+      res.send(items);
+    } catch (error) {
+      console.error('Failed to fetch nearest expiring items:', error);
+      res.status(500).send({
+        message: 'Failed to fetch nearest expiring items',
+        error: error.message
+      });
+    }
+  });
 
   //all expired food items endpoint
   app.get('/food/expired', async (req, res) => {
@@ -251,7 +247,6 @@ app.get('/food/nearest-expiring', async (req, res) => {
     }
   });
 
-
   //update food item notes endpoint
   app.put('/food/update/note/:id', verifyToken, async (req, res) => {
     const foodItemId = req.params.id;
@@ -288,7 +283,6 @@ app.get('/food/nearest-expiring', async (req, res) => {
     }
   });
 
-
   // DELETE /food/:id/note
   app.delete('/food/:id/note', verifyToken, async (req, res) => {
     const foodId = req.params.id;
@@ -311,12 +305,12 @@ app.get('/food/nearest-expiring', async (req, res) => {
   }
   });
 
-
-
-    await client.db("admin").command({ ping: 1 });
-    console.log("Connected to MongoDB successfully!");
-  } catch (err) {
-    console.error('MongoDB connection failed:', err);
+    // Send a ping to confirm a successful connection
+    // await client.db("admin").command({ ping: 1 });
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  } finally {
+    // Ensures that the client will close when you finish/error
+    // await client.close();
   }
 }
 
@@ -325,3 +319,4 @@ run().catch(console.dir);
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
+
