@@ -4,7 +4,7 @@ This is the backend API for **TrackNFresh**, a food expiry tracker web app that 
 
 ## 🔗 Live URL
 
-API Base URL : [Ckick Here](https://track-n-fresh-server.vercel.app)
+API Base URL : [Click Here](https://track-n-fresh-server.vercel.app)
 
 ## Tech Stack
 - **Node.js**
