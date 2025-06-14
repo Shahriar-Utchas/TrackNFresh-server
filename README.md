@@ -57,9 +57,11 @@ npm install
 ```
 4. Create a .env File
 ```sh
-DB_User = Your MongoDB username
-DB_Pass = Your MongoDB password
-FIREBASE_SERVER_KEY = Your firebase jwt service key in base64 format
+# MongoDB credentials
+DB_USER=your_mongo_username
+DB_PASS=your_mongo_password
+# Firebase Admin SDK private key (Base64-encoded JSON)
+FIREBASE_SERVER_KEY=base64_encoded_service_account_json
 ```
 5. Start the server ```nodemon index.js```
 6. Open your browser and run APIs from: http://localhost:3000
