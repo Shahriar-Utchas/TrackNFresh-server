@@ -1,6 +1,6 @@
 # TrackNFresh - Server Side
 
-This is the backend API for **TrackNFresh**, a food expiry tracker web app that helps users monitor and manage their perishable food items efficiently.
+This is the backend API for **TrackNFresh**, a food expiry tracker web application that enables users to efficiently monitor, manage, and track their perishable food items.
 
 ## 🔗 Live URL
 
